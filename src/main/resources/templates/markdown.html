@@ -27,21 +27,65 @@
             return 'default';
         }
 
+        var getDefinitions = function (param) {
+            if(param.$ref){
+                return param.$ref;
+            }
+            if(param.schema){
+                if(param.schema.$ref){
+                    return param.schema.$ref;
+                }
+
+                if(param.schema.items){
+                    if(param.schema.items.$ref){
+                        return param.schema.items.$ref;
+                    }
+                }
+            }
+
+            if(param.items){
+                if( param.items.$ref){
+                    return  param.items.$ref;
+                }
+            }
+
+            return null;
+        }
+
+        var getType = function (param) {
+            if(param.type){
+                return param.type;
+            }
+            if(param.$ref){
+                return 'object';
+            }
+            if(param.schema){
+                if(param.schema.$ref){
+                    return 'object';
+                }
+
+                if(param.schema.items){
+                    if(param.schema.items.$ref){
+                        return 'object';
+                    }
+                }
+            }
+
+            if(param.items){
+                if( param.items.$ref){
+                    return  'object';
+                }
+            }
+
+            return 'array';
+        }
+
 
         var getBodyJson = function (data,docApi) {
             var object = new Object();
 
             var getObj = function (param,object) {
-                var definitions = param.schema==undefined?param.$ref:param.schema.$ref;
-                if(definitions==undefined){
-                    if(param.items!=undefined){
-                        definitions =  param.items.$ref;
-                    }
-
-                    if(param.schema!=undefined){
-                        definitions =  param.schema.items.$ref;
-                    }
-                }
+                var definitions =   getDefinitions(param);
                 var datas = docApi.definitions[definitions.substring(14, definitions.length)];
                 var properties = datas.properties;
                 for (var key in properties) {
@@ -71,10 +115,17 @@
                         if(param.schema.type==undefined){
                             getObj(param,object);
                         }else{
-                            object = new Array();
-                            var child = new Object();
-                            getObj(param,child);
-                            object.push(child);
+                            if(param.schema.items.type==undefined){
+                                object = new Array();
+                                var child = new Object();
+                                getObj(param,child);
+                                object.push(child);
+                            }else{
+                                object = new Array();
+                                var child = getDefaultVal(param.schema.items.type);
+                                object.push(child);
+                            }
+
                         }
 
                     }else{
@@ -92,10 +143,7 @@
 
             var getObj = function(item,object){
 
-                var ref = item.schema==undefined?item.$ref:item.schema.$ref;
-                if(ref==undefined){
-                    ref =  item.items.$ref;
-                }
+                var ref = getDefinitions(item);
                 var datas =  docApi.definitions[ref.substring(14,ref.length)];
                 for(var key in datas.properties){
                     var item = datas.properties[key];
@@ -154,19 +202,10 @@
 
                 mkey = mkey.replace('..','.');
 
-                var paramType;
-                if(param.type==undefined){
-                    if(param.$ref!=undefined){
-                        paramType = 'object';
-                    }else{
-                        paramType = 'array';
-                    }
-                }else{
-                    paramType = param.type;
-                }
+                var paramType = getType(param);
+
 
                 if(inData ==undefined){
-
                     html+=
                         '<tr>' +
                         '<td>'+mkey+(param.name==undefined?$key:param.name)+'</td>\n' +
@@ -193,16 +232,25 @@
                 }
 
                 if(param.type==undefined||param.type=='array'){
-                    var definitions;
-                    if(param.type=='array'){
-                        definitions = param.items.$ref;
-                    }else{
-                        definitions = (param.$ref==undefined?param.schema.$ref:param.$ref);
+                    var definitions = getDefinitions(param);
 
-                        if(definitions==undefined){
-                            definitions = param.schema.items.$ref;
+                    if(param.schema){
+                        if(param.schema.items){
+                            if(param.schema.items.type){
+                                html+=
+                                    '<tr>' +
+                                    '<td></td>\n' +
+                                    '<td>'+param.schema.items.type+'</td>\n' +
+                                    '<td></td>\n' +
+                                    '<td></td>\n' +
+                                    '<td></td>\n' +
+                                    '</tr>';
+                                return html;
+                            }
                         }
                     }
+
+
                     var datas =  docApi.definitions[definitions.substring(14,definitions.length)];
                     var properties = datas.properties;
                     var newData = new Array();
@@ -341,11 +389,14 @@
                                 html+='<table class="table table-bordered">' +
                                     '      <thead >  ' +
                                     '       <tr class="table-primary">\n' +
+                                    '            <td >参数名</td>\n' +
                                     '            <td>格式</td>\n' +
-                                    '       </tr>' +
+                                    '            <td >解释</td>\n' +
+                                    '            <td>必填</td>\n' +
+                                    '        </tr>' +
                                     '</thead>'+
-                                    '<tr><td>'+schema.type+'</td></tr>' +
-                                    '<tr><td>'+schema.items.type+'</td></tr>' +
+                                    '<tr><td></td><td>'+schema.type+'</td><td></td><td></td></tr>' +
+                                    '<tr><td></td><td>'+schema.items.type+'</td><td></td><td></td></tr>' +
                                     '</table>';
                             }
 
@@ -353,10 +404,13 @@
                             html+='<table class="table table-bordered">' +
                                 '      <thead >  ' +
                                 '       <tr class="table-primary">\n' +
+                                '            <td >参数名</td>\n' +
                                 '            <td>格式</td>\n' +
-                                '       </tr>' +
+                                '            <td >解释</td>\n' +
+                                '            <td>必填</td>\n' +
+                                '        </tr>' +
                                 '</thead>'+
-                                '<tr><td>'+schema.type+'</td></tr>' +
+                                '<tr><td></td><td>'+schema.type+'</td><td></td><td></td></tr>' +
                                 '</table>';
                         }
 
