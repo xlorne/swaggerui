@@ -32,7 +32,10 @@
             var object = new Object();
 
             var getObj = function (param,object) {
-                var definitions = param.$ref == undefined ? param.schema.$ref : param.$ref;
+                var definitions = param.schema==undefined?param.$ref:param.schema.$ref;
+                if(definitions==undefined){
+                    definitions =  param.items.$ref;
+                }
                 var datas = docApi.definitions[definitions.substring(14, definitions.length)];
                 var properties = datas.properties;
                 for (var key in properties) {
@@ -41,7 +44,12 @@
                     if (itemType == undefined) {
                         object[key] = new Object();
                         getObj(item,object[key]);
-                    } else {
+                    } else if(itemType=='array'){
+                        object[key] = new Array();
+                        var child = new Object();
+                        getObj(item,child);
+                        object[key].push(child);
+                    }else {
                         object[key] =  getDefaultVal(itemType);
                     }
                 }
@@ -69,12 +77,22 @@
 
             var getObj = function(item,object){
                 var ref = item.schema==undefined?item.$ref:item.schema.$ref;
+                if(ref==undefined){
+                    ref =  item.items.$ref;
+                }
                 var datas =  docApi.definitions[ref.substring(14,ref.length)];
                 for(var key in datas.properties){
                     var item = datas.properties[key];
+
+
                     if(item.type==undefined){
                         object[key] = new Object();
                         getObj(item,object[key]);
+                    }else if(item.type=='array'){
+                        object[key] = new Array();
+                        var child = new Object();
+                        getObj(item,child);
+                        object[key].push(child);
                     }else{
                         object[key] = getDefaultVal(item.type);
                     }
