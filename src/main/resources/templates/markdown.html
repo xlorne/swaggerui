@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" href="/swagger/highlight/styles/default.css" />
+    <link rel="stylesheet" href="/swagger/css/markdown.css"/>
+    <link rel="stylesheet" href="/swagger/bootstrap/css/bootstrap.min.css" />
+    <script src="/swagger/highlight/highlight.pack.js"/>
+    <script src="/swagger/jquery/jquery-3.3.1.min.js"></script>
+    <script src="/swagger/jquery/jquery.goup.min.js"></script>
+
+    <title>markdown-swagger-ui</title>
+
+    <script th:inline="javascript" type="text/javascript">
+
+
+        var getDefaultVal = function (type) {
+            if (type == 'integer') {
+                return  0;
+            }
+            if (type == 'string') {
+                return 'string';
+            }
+
+            return 'default';
+        }
+
+
+        var getBodyJson = function (data,docApi) {
+            var object = new Object();
+
+            var getObj = function (param,object) {
+                var definitions = param.$ref == undefined ? param.schema.$ref : param.$ref;
+                var datas = docApi.definitions[definitions.substring(14, definitions.length)];
+                var properties = datas.properties;
+                for (var key in properties) {
+                    var item = properties[key];
+                    var itemType = item.type;
+                    if (itemType == undefined) {
+                        object[key] = new Object();
+                        getObj(item,object[key]);
+                    } else {
+                        object[key] =  getDefaultVal(itemType);
+                    }
+                }
+            }
+
+            $(data).each(function () {
+                var param = this;
+                var key = param.name;
+                var itemType = param.type;
+                if(param.in=='body'){
+                    if (itemType == undefined) {
+                        getObj(param,object);
+                    }else{
+                        object[key] =  getDefaultVal(itemType);
+                    }
+                }
+            });
+
+            return JSON.stringify(object);
+        };
+
+
+        var getResponseJson = function (responses,docApi) {
+            var object = new Object();
+
+            var getObj = function(item,object){
+                var ref = item.schema==undefined?item.$ref:item.schema.$ref;
+                var datas =  docApi.definitions[ref.substring(14,ref.length)];
+                for(var key in datas.properties){
+                    var item = datas.properties[key];
+                    if(item.type==undefined){
+                        object[key] = new Object();
+                        getObj(item,object[key]);
+                    }else{
+                        object[key] = getDefaultVal(item.type);
+                    }
+                }
+            }
+
+            for(var key in responses){
+                var state = key;
+                var item = responses[state];
+                var schema = item.schema;
+                if(schema.type == undefined){
+                    getObj(item,object);
+                }else{
+                    object[key] = getDefaultVal(item.type);
+                }
+            }
+
+            return JSON.stringify(object);
+        }
+
+        var loadData = function(html,mkey,data,docApi,inData){
+
+            for(var $key in data){
+                var param =  data[$key];
+                inData = (inData==undefined?param.in:inData);
+
+                mkey = ((mkey==''||mkey==undefined)?'':mkey+'.');
+
+                mkey = mkey.replace('..','.');
+
+                if(inData ==undefined){
+                    html+=
+                        '<tr>' +
+                        '<td>'+mkey+(param.name==undefined?$key:param.name)+'</td>\n' +
+                        '<td>'+(param.type?param.type:'object')+'</td>\n' +
+                        '<td>'+param.description+'</td>\n' +
+                        '<td>'+(param.required?'是':'否')+'</td>\n' +
+                        '</tr>';
+
+                }else{
+                    if(param.in!=undefined){
+                        if(param.in!=inData){
+                            inData = param.in;
+                        }
+                    }
+                    html+=
+                        '<tr>' +
+                        '<td>'+mkey+(param.name==undefined?$key:param.name)+'</td>\n' +
+                        '<td>'+(param.type?param.type:'object')+'</td>\n' +
+                        '<td>'+param.description+'</td>\n' +
+                        '<td>'+(param.required?'是':'否')+'</td>\n' +
+                        '<td>'+inData+'</td>\n' +
+                        '</tr>';
+
+                }
+
+                if(param.type==undefined||param.type=='array'){
+                    var definitions;
+                    if(param.type=='array'){
+                        definitions = param.items.$ref;
+                    }else{
+                        definitions = (param.$ref==undefined?param.schema.$ref:param.$ref);
+                    }
+                    var datas =  docApi.definitions[definitions.substring(14,definitions.length)];
+                    var properties = datas.properties;
+                    var newData = new Array();
+                    for(var key in properties){
+                        console.log(key,properties[key]);
+                        var item = properties[key];
+                        item.name = key;
+                        item.required = item.allowEmptyValue;
+                        newData.push(item);
+                    }
+                    html = loadData(html,'&nbsp;&nbsp;&nbsp;&nbsp;'+mkey+param.name,newData,docApi,inData);
+                }
+            }
+
+            return html;
+        }
+
+        var getApiTable = function (path,docApi) {
+
+            var nowPath = docApi.paths[path];
+
+            var baseUrl = 'http://'+docApi.host+docApi.basePath;
+
+            var html = '';
+
+            for(var methodType in nowPath){
+                var consumes = nowPath[methodType].consumes;
+                html +='<table class="table table-bordered">\n' +
+                    '        <tr>\n' +
+                    '            <td colspan="2">请求方式:</td>\n' +
+                    '            <td colspan="2">'+methodType+'<button type="button" data-path="'+path+'" class="btn btn-success btn-sm float-sm-right">Test</button></td>\n' +
+                    '        </tr>\n' +
+                    '        <tr>\n' +
+                    '            <td colspan="2">请求地址:</td>\n' +
+                    '            <td colspan="2">'+(baseUrl+path)+'</td>\n' +
+                    '        </tr>' +
+                    '        <tr>\n' +
+                    '            <td colspan="2">请求形式:</td>\n' +
+                    '            <td colspan="2">'+JSON.stringify(consumes)+'</td>\n' +
+                    '        </tr>' +
+                    '</table>';
+
+                html+='<p>请求参数:</p>';
+
+                html+='<table class="table table-bordered">' +
+                    '      <thead >  ' +
+                    '       <tr class="table-primary">\n' +
+                    '            <td >参数名</td>\n' +
+                    '            <td>格式</td>\n' +
+                    '            <td >解释</td>\n' +
+                    '            <td>必填</td>' +
+                    '            <td>形式</td>\n' +
+                    '        </tr>' +
+                    '</thead>\n';
+
+                html=loadData(html,'',nowPath[methodType].parameters,docApi);
+
+                html+='</table>';
+
+                var bodyJson = getBodyJson(nowPath[methodType].parameters,docApi);
+
+                html+='<p>body请求示例:</p>';
+                html+='<pre>'+bodyJson+'</pre>';
+                html+='<p>响应参数:</p>';
+
+
+
+                var responses = nowPath[methodType].responses;
+
+                var responseJson = getResponseJson(responses,docApi);
+                console.log('responseJson->',responseJson);
+                for(var key in responses){
+                    var state = key;
+                    var item = responses[state];
+                    var stateDes = item.description;
+                    var schema = item.schema;
+                    if(schema.type == undefined){
+                        var ref = schema.$ref;
+                        var datas =  docApi.definitions[ref.substring(14,ref.length)];
+                        console.log("res->data",datas);
+
+                        var newData = new Array();
+                        for(var key in datas.properties){
+                            console.log(key,datas.properties[key]);
+                            var item = datas.properties[key];
+                            item.name = key;
+                            item.required = item.allowEmptyValue;
+                            newData.push(item);
+                        }
+
+                        html+='<table class="table table-bordered">' +
+                            '      <thead >  ' +
+                            '       <tr class="table-primary">\n' +
+                            '            <td >参数名</td>\n' +
+                            '            <td>格式</td>\n' +
+                            '            <td >解释</td>\n' +
+                            '            <td>必填</td>\n' +
+                            '        </tr>' +
+                            '</thead>\n';
+
+                        html=loadData(html,'',newData,docApi);
+
+                        html+='</table>';
+                    }
+                }
+
+                html+='<p>response响应数示例:</p>';
+                html+='<pre>'+responseJson+'</pre>';
+            }
+            return html;
+        }
+        var loadDocs = function(){
+
+           $.get('/v2/api-docs',function (docApi) {
+                console.log(docApi);
+
+                var div = $("#div");
+
+                var apis = div.find("api");
+
+                $(apis).each(function () {
+                    var api = $(this);
+                    var path = api.attr("name");
+                    console.log(path);
+                    api.append(getApiTable(path,docApi));
+                });
+            });
+
+
+        }
+
+        $(document).ready(function () {
+            var html = [[${md}]];
+            console.log(html);
+            $("#div").html(html);
+            $('pre code').each(function(i, block) {
+                hljs.highlightBlock(block);
+            });
+
+            $.goup({
+                trigger: 100,
+                bottomOffset: 150,
+                locationOffset: 100,
+                titleAsText: true
+            });
+
+
+            loadDocs();
+
+        });
+
+        $(document).on("click","button[data-path]",function () {
+            var path = $(this).attr('data-path');
+            alert(path);
+            return false;
+        })
+
+    </script>
+</head>
+<body>
+<div class="container" id="div"></div>
+</body>
+
+
+</html>
