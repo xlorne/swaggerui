@@ -4,10 +4,10 @@
 <head>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta charset="UTF-8"/>
-    <link rel="stylesheet" href="/swagger/highlight/styles/default.css" />
-    <link rel="stylesheet" href="/swagger/css/markdown.css"/>
+    <link href="https://cdn.bootcss.com/docsearch.js/2.4.1/docsearch.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="/swagger/bootstrap/css/bootstrap.min.css" />
-    <script src="/swagger/highlight/highlight.pack.js"/>
+    <link href="/swagger/assets/css/docs.min.css" rel="stylesheet" />
+    <link href="/swagger/css/markdown.css" rel="stylesheet" />
     <script src="/swagger/jquery/jquery-3.3.1.min.js"></script>
     <script src="/swagger/jquery/jquery.goup.min.js"></script>
 
@@ -440,10 +440,62 @@
             });
         }
 
+        var loadTitle = function(){
+            $("#title").empty();
+
+            var lastTagName = 'H2';
+
+            var titleHtml = '';
+            $("#div").children().each(function(index, element) {
+                var tag = $(this);
+                var tagName=tag.get(0).tagName;
+                if(tagName.substr(0,1).toUpperCase()=="H"){
+                    var content = tag.html();
+                    if(lastTagName == 'H3'){
+                        if( tagName=='H2'){
+                            titleHtml+="</ul>";
+                        }
+                    }
+                    if(tagName == 'H2'){
+                        titleHtml+='<li class="toc-entry toc-h2"><a href="#'+content+'">'+content+'</a></li>';
+                    }
+                    if(tagName == 'H3'){
+                        if(lastTagName=='H2'){
+                            titleHtml+='<ul>';
+                        }
+                        titleHtml+='<li class="toc-entry toc-h3"><a href="#'+content+'">'+content+'</a></li>';
+                    }
+                    lastTagName = tagName;
+                }
+
+            });
+
+
+            $("#title").append(titleHtml);
+        }
+
+
+        var loadList = function(){
+            var list = [[${list}]];
+            console.log(list);
+
+            $("#bd-docs-nav").empty();
+            var html='';
+            for(var key in list) {
+                var item = list[key];
+                html += '<div class="mactive bd-toc-item">';
+                html += '<a class="bd-toc-link" href="/' + item + '">' + item + '</a>';
+                html += '</div>';
+            }
+            $("#bd-docs-nav").append(html);
+
+        }
         $(document).ready(function () {
             var html = [[${md}]];
-            console.log(html);
             $("#div").html(html);
+            loadDocs();
+            loadTitle();
+            loadList();
             $('pre code').each(function(i, block) {
                 hljs.highlightBlock(block);
             });
@@ -454,9 +506,6 @@
                 locationOffset: 100,
                 titleAsText: true
             });
-
-
-            loadDocs();
 
         });
 
@@ -469,8 +518,26 @@
     </script>
 </head>
 <body>
-<div class="container" id="div"></div>
+<div class="container-fluid">
+    <div class="row flex-xl-nowrap">
+        <div class="col-12 col-md-3 col-xl-2 bd-sidebar">
+            <nav class="collapse bd-links" id="bd-docs-nav">
+
+            </nav>
+        </div>
+
+        <div class="d-none d-xl-block col-xl-2 bd-toc">
+            <ul class="section-nav" id="title">
+
+            </ul>
+        </div>
+
+        <main class="col-12 col-md-9 col-xl-8 py-md-3 pl-md-5 bd-content" id="div" role="main">
+
+        </main>
+
+    </div>
+</div>
 </body>
-
-
 </html>
+

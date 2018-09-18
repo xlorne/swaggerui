@@ -19,27 +19,17 @@ import java.io.IOException;
  * @description
  */
 @Controller
-@RequestMapping("/md")
 public class MarkDownController {
 
     @Autowired
     private MarkdownService markdownService;
 
-    @RequestMapping(value = "/{path}/{file}", method = RequestMethod.GET)
-    public String markdownView(Model model, @PathVariable("path") String path,@PathVariable("file") String file) throws IOException {
-        String filePath = String.format("static/md/%s/%s.md",path,file);
-        Resource resource = new ClassPathResource(filePath);
-        String md = IOUtils.toString(resource.getInputStream(),"utf-8");
-        model.addAttribute("md", markdownService.parseMarkdownString(md));
-        return "markdown";
-    }
-
-
     @RequestMapping(value = "/{file}", method = RequestMethod.GET)
     public String markdownView(Model model,@PathVariable("file") String file)  throws IOException {
-        String filePath = String.format("static/md/%s.md",file);
+        String filePath = String.format("static/md/%s",file);
         Resource resource = new ClassPathResource(filePath);
         String md = IOUtils.toString(resource.getInputStream(),"utf-8");
+        model.addAttribute("list", resource.getFile().getParentFile().list());
         model.addAttribute("md", markdownService.parseMarkdownString(md));
         return "markdown";
     }
