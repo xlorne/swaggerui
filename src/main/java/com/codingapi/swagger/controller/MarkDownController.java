@@ -34,7 +34,7 @@ public class MarkDownController {
         String filePath = String.format("static/md/%s",file);
         Resource resource = new ClassPathResource(filePath);
         String md = IOUtils.toString(resource.getInputStream(),"utf-8");
-
+        model.addAttribute("title",titleService.readTitle(resource.getFile()));
         model.addAttribute("list",titleService.loadCatalogs(resource.getFile()));
         model.addAttribute("md", markdownService.parseMarkdownString(md));
         return "markdown";

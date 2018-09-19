@@ -17,16 +17,15 @@ import java.util.List;
 public class TitleService {
 
 
-
     public List<Catalog> loadCatalogs(File file) {
 
         List<Catalog> list = new ArrayList<>();
         String path = file.getParent();
 
-        for(String fileName:file.getParentFile().list()){
-            File mdFile = new File(path+"/"+fileName);
+        for (String fileName : file.getParentFile().list()) {
+            File mdFile = new File(path + "/" + fileName);
             String title = MyFileUtils.readOneLine(mdFile);
-            title = title.replaceAll("#","");
+            title = title.replaceAll("#", "");
 
             Catalog catalog = new Catalog();
             catalog.setPath(fileName);
@@ -36,4 +35,12 @@ public class TitleService {
 
         return list;
     }
+
+
+    public String readTitle(File file) {
+        String title = MyFileUtils.readOneLine(file);
+        title = title.replaceAll("#", "");
+        return title;
+    }
+
 }
