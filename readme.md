@@ -64,7 +64,7 @@ type对应请求方式
 
 ## 效果
 
-![](swagger-ui.png)
+![](swagger-ui.jpg)
 
 ## 关于测试
 
