@@ -73,7 +73,7 @@ http://127.0.01:8080/md/index.md
 
 点击Test的时候会跳转到swagger2.8.0官网文档界面，然后会自动打开对应接口的调试界面。
 
-## 演示项目
+## 示例项目
 
 https://github.com/1991wangliang/demo-test
 
