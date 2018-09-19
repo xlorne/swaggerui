@@ -55,7 +55,7 @@ http://ip:port/md/index.md
 
 关于api标签说明  
 
-api标准中name对应项目中controller的mapping  
+name对应项目中controller的mapping全路径
 type对应请求方式   
 
 
