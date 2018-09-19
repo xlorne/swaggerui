@@ -11,6 +11,7 @@
     <script src="/swagger/jquery/jquery-3.3.1.min.js"></script>
     <script src="/swagger/jquery/jquery.goup.min.js"></script>
     <script src="/swagger/js/base64.js"></script>
+    <script src="/swagger/js/json.js"></script>
 
     <title th:text="${title}"></title>
 
@@ -135,7 +136,9 @@
                 }
             });
 
-            return JSON.stringify(object);
+            var json =  JSON.stringify(object);
+
+            return formatJson(json);
         };
 
 
@@ -190,7 +193,10 @@
                 }
             }
 
-            return JSON.stringify(object);
+            var json =  JSON.stringify(object);
+
+            return formatJson(json);
+
         }
 
         var loadData = function(html,mkey,data,docApi,inData){
