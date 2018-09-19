@@ -24,7 +24,7 @@
 * 接口文档访问路径
 
 
-http://ip:port/md/xxx.md文件  
+http://ip:port/md/xxx.md   
 
 例如上图的文件则访问地址为
 
