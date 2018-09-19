@@ -75,4 +75,22 @@ type对应请求方式
 https://github.com/1991wangliang/demo-test
 
 
+## QA
+
+Q：当访问界面时遇到如下错误
+
+
+```
+Whitelabel Error Page This application has no explicit mapping for /error, so you are seeing this as a fallback.
+
+Wed Sep 19 20:15:01 CST 2018 There was an unexpected error (type=Internal Server Error, status=500). Exception parsing document: template="markdown", line 461 - column 43
+```
+
+A: 在项目的pom文件的properties下添加如下配置
+
+```
+<thymeleaf.version>3.0.9.RELEASE</thymeleaf.version>
+<thymeleaf-layout-dialect.version>2.0.4</thymeleaf-layout-dialect.version>
+```
+
 

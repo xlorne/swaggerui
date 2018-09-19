@@ -31,7 +31,7 @@ public class MarkDownController {
 
     @RequestMapping(value = "/{file}", method = RequestMethod.GET)
     public String markdownView(Model model,@PathVariable("file") String file)  throws IOException {
-        String filePath = String.format("static/md/%s",file);
+        String filePath = String.format("static/md/%s",file.endsWith("md")?file:file+".md");
         Resource resource = new ClassPathResource(filePath);
         String md = IOUtils.toString(resource.getInputStream(),"utf-8");
         model.addAttribute("title",titleService.readTitle(resource.getFile()));
