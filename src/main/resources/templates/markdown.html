@@ -217,7 +217,7 @@
                         '<tr>' +
                         '<td>'+mkey+(param.name==undefined?$key:param.name)+'</td>\n' +
                         '<td>'+paramType+'</td>\n' +
-                        '<td>'+param.description+'</td>\n' +
+                        '<td>'+(param.description?param.description:'')+'</td>\n' +
                         '<td>'+(param.required?'是':'否')+'</td>\n' +
                         '</tr>';
 
@@ -231,7 +231,7 @@
                         '<tr>' +
                         '<td>'+mkey+(param.name==undefined?$key:param.name)+'</td>\n' +
                         '<td>'+paramType+'</td>\n' +
-                        '<td>'+param.description+'</td>\n' +
+                        '<td>'+(param.description?param.description:'')+'</td>\n' +
                         '<td>'+(param.required?'是':'否')+'</td>\n' +
                         '<td>'+inData+'</td>\n' +
                         '</tr>';
