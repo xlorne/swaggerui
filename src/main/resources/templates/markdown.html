@@ -454,22 +454,21 @@
                 var tag = $(this);
                 var tagName=tag.get(0).tagName;
                 if(tagName.substr(0,1).toUpperCase()=="H"){
-                    var content = tag.html();
-                    if(lastTagName == 'H3'){
-                        if( tagName=='H2'){
+
+                    if(tagName != 'H1'){
+                        var content = tag.html();
+                        if(lastTagName>tagName){
                             titleHtml+="</ul>";
                         }
-                    }
-                    if(tagName == 'H2'){
-                        titleHtml+='<li class="toc-entry toc-h2"><a href="#'+content+'">'+content+'</a></li>';
-                    }
-                    if(tagName == 'H3'){
-                        if(lastTagName=='H2'){
+
+                        if(lastTagName<tagName){
                             titleHtml+='<ul>';
                         }
-                        titleHtml+='<li class="toc-entry toc-h3"><a href="#'+content+'">'+content+'</a></li>';
+
+                        titleHtml+='<li class="toc-entry toc-'+tagName.toLowerCase()+'"><a href="#'+content+'">'+content+'</a></li>';
+
+                        lastTagName = tagName;
                     }
-                    lastTagName = tagName;
                 }
 
             });
