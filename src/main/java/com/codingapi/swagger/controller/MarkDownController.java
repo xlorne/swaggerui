@@ -19,6 +19,7 @@ import java.io.IOException;
  * @description
  */
 @Controller
+@RequestMapping("/md")
 public class MarkDownController {
 
     @Autowired

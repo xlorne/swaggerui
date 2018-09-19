@@ -10,6 +10,7 @@
     <link href="/swagger/css/markdown.css" rel="stylesheet" />
     <script src="/swagger/jquery/jquery-3.3.1.min.js"></script>
     <script src="/swagger/jquery/jquery.goup.min.js"></script>
+    <script src="/swagger/js/base64.js"></script>
 
     <title>markdown-swagger-ui</title>
 
@@ -268,139 +269,119 @@
             return html;
         }
 
-        var getApiTable = function (path,docApi) {
-
+        var getApiTable = function (path,methodType,docApi) {
             var nowPath = docApi.paths[path];
-
             var baseUrl = 'http://'+docApi.host+docApi.basePath;
-
             var html = '';
+            var consumes = nowPath[methodType].consumes;
+            html +='<table class="table table-bordered">\n' +
+                '        <tr>\n' +
+                '            <td colspan="2">请求方式:</td>\n' +
+                '            <td colspan="2">'+methodType+'<button type="button" data-path="'+path+'" data-type="'+methodType+'" class="btn btn-success btn-sm float-sm-right">Test</button></td>\n' +
+                '        </tr>\n' +
+                '        <tr>\n' +
+                '            <td colspan="2">请求地址:</td>\n' +
+                '            <td colspan="2">'+(baseUrl+path)+'</td>\n' +
+                '        </tr>' +
+                '        <tr>\n' +
+                '            <td colspan="2">请求形式:</td>\n' +
+                '            <td colspan="2">'+JSON.stringify(consumes)+'</td>\n' +
+                '        </tr>' +
+                '</table>';
 
-            for(var methodType in nowPath){
-                var consumes = nowPath[methodType].consumes;
-                html +='<table class="table table-bordered">\n' +
-                    '        <tr>\n' +
-                    '            <td colspan="2">请求方式:</td>\n' +
-                    '            <td colspan="2">'+methodType+'<button type="button" data-path="'+path+'" class="btn btn-success btn-sm float-sm-right">Test</button></td>\n' +
-                    '        </tr>\n' +
-                    '        <tr>\n' +
-                    '            <td colspan="2">请求地址:</td>\n' +
-                    '            <td colspan="2">'+(baseUrl+path)+'</td>\n' +
-                    '        </tr>' +
-                    '        <tr>\n' +
-                    '            <td colspan="2">请求形式:</td>\n' +
-                    '            <td colspan="2">'+JSON.stringify(consumes)+'</td>\n' +
-                    '        </tr>' +
-                    '</table>';
+            html+='<p>请求参数:</p>';
 
-                html+='<p>请求参数:</p>';
+            html+='<table class="table table-bordered">' +
+                '      <thead >  ' +
+                '       <tr class="table-primary">\n' +
+                '            <td >参数名</td>\n' +
+                '            <td>格式</td>\n' +
+                '            <td >解释</td>\n' +
+                '            <td>必填</td>' +
+                '            <td>形式</td>\n' +
+                '        </tr>' +
+                '</thead>\n';
 
-                html+='<table class="table table-bordered">' +
-                    '      <thead >  ' +
-                    '       <tr class="table-primary">\n' +
-                    '            <td >参数名</td>\n' +
-                    '            <td>格式</td>\n' +
-                    '            <td >解释</td>\n' +
-                    '            <td>必填</td>' +
-                    '            <td>形式</td>\n' +
-                    '        </tr>' +
-                    '</thead>\n';
+            html=loadData(html,'',nowPath[methodType].parameters,docApi);
 
-                html=loadData(html,'',nowPath[methodType].parameters,docApi);
+            html+='</table>';
 
-                html+='</table>';
+            var bodyJson = getBodyJson(nowPath[methodType].parameters,docApi);
 
-                var bodyJson = getBodyJson(nowPath[methodType].parameters,docApi);
-
-                html+='<p>body请求示例:</p>';
-                html+='<pre>'+bodyJson+'</pre>';
-                html+='<p>响应参数:</p>';
+            html+='<p>body请求示例:</p>';
+            html+='<pre>'+bodyJson+'</pre>';
+            html+='<p>响应参数:</p>';
 
 
 
-                var responses = nowPath[methodType].responses;
+            var responses = nowPath[methodType].responses;
 
-                var responseJson = getResponseJson(responses,docApi);
-                console.log('responseJson->',responseJson);
-                for(var key in responses){
-                    var state = key;
-                    var item = responses[state];
-                    var stateDes = item.description;
-                    var schema = item.schema;
-                    if(schema.type == undefined){
-                        var ref = schema.$ref;
-                        var datas =  docApi.definitions[ref.substring(14,ref.length)];
-                        console.log("res->data",datas);
+            var responseJson = getResponseJson(responses,docApi);
+            console.log('responseJson->',responseJson);
+            for(var key in responses){
+                var state = key;
+                var item = responses[state];
+                var stateDes = item.description;
+                var schema = item.schema;
+                if(schema.type == undefined){
+                    var ref = schema.$ref;
+                    var datas =  docApi.definitions[ref.substring(14,ref.length)];
+                    console.log("res->data",datas);
 
-                        var newData = new Array();
-                        for(var key in datas.properties){
-                            console.log(key,datas.properties[key]);
-                            var item = datas.properties[key];
-                            item.name = key;
-                            item.required = item.allowEmptyValue;
-                            newData.push(item);
-                        }
+                    var newData = new Array();
+                    for(var key in datas.properties){
+                        console.log(key,datas.properties[key]);
+                        var item = datas.properties[key];
+                        item.name = key;
+                        item.required = item.allowEmptyValue;
+                        newData.push(item);
+                    }
 
-                        html+='<table class="table table-bordered">' +
-                            '      <thead >  ' +
-                            '       <tr class="table-primary">\n' +
-                            '            <td >参数名</td>\n' +
-                            '            <td>格式</td>\n' +
-                            '            <td >解释</td>\n' +
-                            '            <td>必填</td>\n' +
-                            '        </tr>' +
-                            '</thead>\n';
+                    html+='<table class="table table-bordered">' +
+                        '      <thead >  ' +
+                        '       <tr class="table-primary">\n' +
+                        '            <td >参数名</td>\n' +
+                        '            <td>格式</td>\n' +
+                        '            <td >解释</td>\n' +
+                        '            <td>必填</td>\n' +
+                        '        </tr>' +
+                        '</thead>\n';
 
-                        html=loadData(html,'',newData,docApi);
+                    html=loadData(html,'',newData,docApi);
 
-                        html+='</table>';
-                    }else{
-                        if(schema.type =='array'){
+                    html+='</table>';
+                }else{
+                    if(schema.type =='array'){
 
-                            if(schema.items.type==undefined){
-                                html+='<table class="table table-bordered">' +
-                                    '      <thead>  ' +
-                                    '       <tr class="table-primary">\n' +
-                                    '            <td >参数名</td>\n' +
-                                    '            <td>格式</td>\n' +
-                                    '            <td >解释</td>\n' +
-                                    '            <td>必填</td>\n' +
-                                    '        </tr>' +
-                                    '</thead>'+
-                                    '<tr><td colspan="4">array</td></tr>';
+                        if(schema.items.type==undefined){
+                            html+='<table class="table table-bordered">' +
+                                '      <thead>  ' +
+                                '       <tr class="table-primary">\n' +
+                                '            <td >参数名</td>\n' +
+                                '            <td>格式</td>\n' +
+                                '            <td >解释</td>\n' +
+                                '            <td>必填</td>\n' +
+                                '        </tr>' +
+                                '</thead>'+
+                                '<tr><td colspan="4">array</td></tr>';
 
-                                var ref = schema.items.$ref;
-                                var datas =  docApi.definitions[ref.substring(14,ref.length)];
+                            var ref = schema.items.$ref;
+                            var datas =  docApi.definitions[ref.substring(14,ref.length)];
 
-                                var newData = new Array();
-                                for(var key in datas.properties){
-                                    console.log(key,datas.properties[key]);
-                                    var item = datas.properties[key];
-                                    item.name = key;
-                                    item.required = item.allowEmptyValue;
-                                    newData.push(item);
-                                }
-
-                                html=loadData(html,'&nbsp;&nbsp;&nbsp;&nbsp;',newData,docApi);
-
-                                html+='</table>';
-                            }else{
-
-                                html+='<table class="table table-bordered">' +
-                                    '      <thead >  ' +
-                                    '       <tr class="table-primary">\n' +
-                                    '            <td >参数名</td>\n' +
-                                    '            <td>格式</td>\n' +
-                                    '            <td >解释</td>\n' +
-                                    '            <td>必填</td>\n' +
-                                    '        </tr>' +
-                                    '</thead>'+
-                                    '<tr><td></td><td>'+schema.type+'</td><td></td><td></td></tr>' +
-                                    '<tr><td></td><td>'+schema.items.type+'</td><td></td><td></td></tr>' +
-                                    '</table>';
+                            var newData = new Array();
+                            for(var key in datas.properties){
+                                console.log(key,datas.properties[key]);
+                                var item = datas.properties[key];
+                                item.name = key;
+                                item.required = item.allowEmptyValue;
+                                newData.push(item);
                             }
 
+                            html=loadData(html,'&nbsp;&nbsp;&nbsp;&nbsp;',newData,docApi);
+
+                            html+='</table>';
                         }else{
+
                             html+='<table class="table table-bordered">' +
                                 '      <thead >  ' +
                                 '       <tr class="table-primary">\n' +
@@ -411,22 +392,39 @@
                                 '        </tr>' +
                                 '</thead>'+
                                 '<tr><td></td><td>'+schema.type+'</td><td></td><td></td></tr>' +
+                                '<tr><td></td><td>'+schema.items.type+'</td><td></td><td></td></tr>' +
                                 '</table>';
                         }
 
+                    }else{
+                        html+='<table class="table table-bordered">' +
+                            '      <thead >  ' +
+                            '       <tr class="table-primary">\n' +
+                            '            <td >参数名</td>\n' +
+                            '            <td>格式</td>\n' +
+                            '            <td >解释</td>\n' +
+                            '            <td>必填</td>\n' +
+                            '        </tr>' +
+                            '</thead>'+
+                            '<tr><td></td><td>'+schema.type+'</td><td></td><td></td></tr>' +
+                            '</table>';
                     }
-                }
 
-                html+='<p>response响应数示例:</p>';
-                html+='<pre>'+responseJson+'</pre>';
+                }
             }
+
+            html+='<p>response响应数示例:</p>';
+            html+='<pre>'+responseJson+'</pre>';
+
             return html;
         }
         var loadDocs = function(){
 
            $.get('/v2/api-docs',function (docApi) {
                 console.log(docApi);
-
+                var base64 = new Base64();
+                var encodeStr = base64.encode(JSON.stringify(docApi));
+                $("#hidden").val(encodeStr);
                 var div = $("#div");
 
                 var apis = div.find("api");
@@ -434,8 +432,9 @@
                 $(apis).each(function () {
                     var api = $(this);
                     var path = api.attr("name");
-                    console.log(path);
-                    api.append(getApiTable(path,docApi));
+                    var type = api.attr("type");
+                    console.log(path,type);
+                    api.append(getApiTable(path,type,docApi));
                 });
             });
         }
@@ -511,13 +510,28 @@
 
         $(document).on("click","button[data-path]",function () {
             var path = $(this).attr('data-path');
-            alert(path);
+            var type = $(this).attr('data-type');
+
+            var base64 = new Base64();
+            var decodeStr = base64.decode($("#hidden").val());
+            var docApi = JSON.parse(decodeStr);
+
+            console.log(path,type,docApi);
+
+            var tag = docApi.paths[path][type].tags[0];
+            var operationId = docApi.paths[path][type].operationId;
+
+            console.log(tag,operationId);
+
+            window.open('/swagger-ui.html?tag='+tag+'&type='+operationId);
+
             return false;
         })
 
     </script>
 </head>
 <body>
+<input id="hidden" type="hidden" value=""/>
 <div class="container-fluid">
     <div class="row flex-xl-nowrap">
         <div class="col-12 col-md-3 col-xl-2 bd-sidebar">
