@@ -1,12 +1,15 @@
-# swaggerui
+# markdown-swagger-ui
 
 
-调整swaggerui，支持markdown方式对接口的描述。基于swagger-ui 2.8.0版本
+> markdown形式的swagger-ui接口文档
+
+该框架是基于swagger-ui 2.8.0 界面扩展
 
 
 ## 使用说明
 
-* 将swagger-ui 2.8.0的jar用该maven替换
+
+* 将swagger-ui 2.8.0的jar用如下maven配置替换
 
 ``` 
  <dependency>
@@ -20,15 +23,6 @@
 * 在项目的resources下添加static/md文件夹下，然后添加接口文档的md文件
 
 ![](picture2.png)
-
-* 接口文档访问路径
-
-
-http://ip:port/md/xxx.md   
-
-例如上图的文件则访问地址为
-
-http://ip:port/md/index.md
 
 
 * markdown文档格式如下
@@ -44,7 +38,7 @@ http://ip:port/md/index.md
 <api name="/demo/index" type="post"></api>
 
 
-## 首页接口2
+### 首页接口2
 
 我是接口说明2。 
 
@@ -53,22 +47,32 @@ http://ip:port/md/index.md
 
 ```
 
-关于api标签说明  
+支持## ### 交替索引的目录
+
+关于api标签说明:
 
 name对应项目中controller的mapping全路径
 type对应请求方式   
 
-
 编写文档的时候可以用markdown格式写清楚接口定义
+
+
+* 接口文档访问路径
+
+http://ip:port/md/xxx.md   
+
+例如：
+http://127.0.01:8080/md/index.md
+
 
 
 ## 效果
 
 ![](picture1.png)
 
-## 关于测试
+## 关于Test(接口测试)
 
-点击调试的时候会跳转到swagger访问的文档界面，然后自动打开对该接口的调试。
+点击Test的时候会跳转到swagger2.8.0官网文档界面，然后会自动打开对应接口的调试界面。
 
 ## 演示项目
 
