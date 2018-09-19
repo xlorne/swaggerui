@@ -282,12 +282,17 @@
                 '        <tr>\n' +
                 '            <td colspan="2">请求地址:</td>\n' +
                 '            <td colspan="2">'+(baseUrl+path)+'</td>\n' +
-                '        </tr>' +
-                '        <tr>\n' +
-                '            <td colspan="2">请求形式:</td>\n' +
-                '            <td colspan="2">'+JSON.stringify(consumes)+'</td>\n' +
-                '        </tr>' +
-                '</table>';
+                '        </tr>';
+
+                if(consumes!=undefined){
+                    html+='        <tr>\n' +
+                        '            <td colspan="2">请求形式:</td>\n' +
+                        '            <td colspan="2">'+JSON.stringify(consumes)+'</td>\n' +
+                        '        </tr>';
+                }
+
+
+                html+='</table>';
 
             html+='<p>请求参数:</p>';
 
