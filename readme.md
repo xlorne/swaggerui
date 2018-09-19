@@ -19,7 +19,7 @@
 
 * 在项目的resources下添加static/md文件夹下，然后添加接口文档的md文件
 
-![](list.png)
+![](picture2.png)
 
 * 接口文档访问路径
 
@@ -64,7 +64,7 @@ type对应请求方式
 
 ## 效果
 
-![](swagger-ui.jpg)
+![](picture1.png)
 
 ## 关于测试
 
