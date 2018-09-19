@@ -70,5 +70,9 @@ type对应请求方式
 
 点击调试的时候会跳转到swagger访问的文档界面，然后自动打开对该接口的调试。
 
+## 演示项目
+
+https://github.com/1991wangliang/demo-test
+
 
 
