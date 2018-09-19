@@ -6,7 +6,7 @@
 
 ## 使用说明
 
-将swagger-ui 2.8.0的jar用该maven替换
+* 将swagger-ui 2.8.0的jar用该maven替换
 
 ``` 
  <dependency>
@@ -14,10 +14,24 @@
      <artifactId>swagger-ui</artifactId>
      <version>2.8.0</version>
  </dependency>
+ 
 ```
 
+* 在项目的resources下添加static/md文件夹下，然后添加接口文档的md文件
 
-## markdown文档格式
+![](list.png)
+
+* 接口文档访问路径
+
+
+http://ip:port/md/xxx.md文件  
+
+例如上图的文件则访问地址为
+
+http://ip:port/md/index.md
+
+
+* markdown文档格式如下
 
 ```
 
