@@ -24,7 +24,7 @@
 * 接口文档访问路径
 
 
-http://ip:port/md/xxx.md文件  
+http://ip:port/md/xxx.md   
 
 例如上图的文件则访问地址为
 
@@ -55,7 +55,7 @@ http://ip:port/md/index.md
 
 关于api标签说明  
 
-api标准中name对应项目中controller的mapping  
+name对应项目中controller的mapping全路径
 type对应请求方式   
 
 
