@@ -483,7 +483,7 @@
             for(var key in list) {
                 var item = list[key];
                 html += '<div class="mactive bd-toc-item">';
-                html += '<a class="bd-toc-link" href="/md/' + item + '">' + item + '</a>';
+                html += '<a class="bd-toc-link" href="/md/' + item.path + '">' + item.title + '</a>';
                 html += '</div>';
             }
             $("#bd-docs-nav").append(html);
