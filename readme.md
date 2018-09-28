@@ -21,7 +21,16 @@
 
 * 在项目的resources下添加static/md文件夹下，然后添加接口文档的md文件
 
-![](picture2.png)
+```
+.
+└── static
+    ├── img
+    │   └── logo.png
+    └── md
+        ├── index.md
+        └── index2.md
+
+```
 
 
 * markdown文档格式如下
