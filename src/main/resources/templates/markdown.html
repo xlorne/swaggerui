@@ -443,7 +443,13 @@
                 $(apis).each(function () {
                     var api = $(this);
                     var path = api.attr("name");
+                    if(path==undefined){
+                        path = api.attr("mapping");
+                    }
                     var type = api.attr("type");
+                    if(type==undefined){
+                        type = api.attr("method");
+                    }
                     console.log(path,type);
                     api.append(getApiTable(path,type,docApi));
                 });

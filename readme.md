@@ -32,16 +32,16 @@
 
 ## 首页接口
 
-接口描述，该接口是用于手机端登录接口。 
+接口描述，该接口是用于手机端登录接口。
 
-<api name="/demo/index" type="post"></api>
+<api mapping="/demo/index" method="post"></api>
 
 
 ### 首页接口2
 
 我是接口说明2。 
 
-<api name="/demo/index2" type="post"></api>
+<api mapping="/demo/index2" method="post"></api>
 
 
 ```
@@ -50,8 +50,8 @@
 
 关于api标签说明:
 
-name对应项目中controller的mapping全路径
-type对应请求方式   
+mapping 对应项目中controller的mapping全路径
+method  对应请求方式   
 
 编写文档的时候可以用markdown格式写清楚接口定义
 
