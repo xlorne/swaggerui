@@ -59,8 +59,8 @@
 
 关于api标签说明:
 
-mapping 对应项目中controller的mapping全路径
-method  对应请求方式   
+mapping 对应项目中controller的mapping全路径     
+method  对应请求方式      
 
 编写文档的时候可以用markdown格式写清楚接口定义
 
