@@ -13,6 +13,15 @@
     <script src="/swagger/js/base64.js"></script>
     <script src="/swagger/js/json.js"></script>
 
+    <script src="https://cdn.bootcss.com/raphael/2.2.7/raphael.js"></script>
+    <script src="https://cdn.bootcss.com/flowchart/1.7.0/flowchart.js"></script>
+    <script src="https://bramp.github.io/js-sequence-diagrams/js/webfont.js" ></script>
+    <script src="https://bramp.github.io/js-sequence-diagrams/js/snap.svg-min.js" ></script>
+    <script src="https://bramp.github.io/js-sequence-diagrams/js/underscore-min.js" ></script>
+    <script src="https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js" ></script>
+    <link href="https://bramp.github.io/js-sequence-diagrams/css/sequence-diagram-min.css" rel="stylesheet" />
+
+
     <title th:text="${title}"></title>
 
     <script th:inline="javascript" type="text/javascript">
@@ -511,9 +520,20 @@
             loadDocs();
             loadTitle();
             loadList();
-            $('pre code').each(function(i, block) {
-                hljs.highlightBlock(block);
+
+
+            var options = {theme: 'simple'};
+            $("code.language-sequence").sequenceDiagram(options);
+
+            $('code.language-flow').each(function(){
+                var flow = $(this);
+                var code = flow.text();
+                var chart = flowchart.parse(code);
+                $(this).empty();
+                flow.attr('id','xxx'+new Date().getMilliseconds());
+                chart.drawSVG(flow.attr('id'));
             });
+
 
             $.goup({
                 trigger: 100,
