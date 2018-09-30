@@ -1,6 +1,7 @@
 package com.codingapi.swagger.service;
 
 import com.vladsch.flexmark.ast.Document;
+import com.vladsch.flexmark.ext.emoji.EmojiExtension;
 import com.vladsch.flexmark.ext.footnotes.FootnoteExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.ext.toc.TocExtension;
@@ -30,7 +31,9 @@ public class MarkdownService {
                         //Toc支持
                         TocExtension.create(),
                         //脚本
-                        FootnoteExtension.create()
+                        FootnoteExtension.create(),
+
+                        EmojiExtension.create()
 
                 ));
         Parser parser = Parser.builder(options).build();
