@@ -26,6 +26,12 @@
 
     <script th:inline="javascript" type="text/javascript">
 
+        String.prototype.replaceAll = function (FindText, RepText) {
+            var regExp = new RegExp(FindText, "g");
+            return this.replace(regExp, RepText);
+        }
+
+
 
         var getDefaultVal = function (type) {
             if (type == 'integer') {
@@ -460,7 +466,22 @@
                         type = api.attr("method");
                     }
                     console.log(path,type);
-                    api.append(getApiTable(path,type,docApi));
+                    var html = api[0].outerHTML;
+
+                    html = html.replaceAll("<","&#60;");
+                    html = html.replaceAll(">","&#62;");
+                    try{
+                        var nowPath = docApi.paths[path];
+                        var consumes = nowPath[type];
+                        if(consumes==undefined){
+                            api.append(html);
+                        }else{
+                            api.append(getApiTable(path,type,docApi));
+                        }
+                    }catch (e) {
+                        api.append(html);
+                    }
+
                 });
             });
         }
