@@ -398,6 +398,9 @@
         var getApiTable = function (path,methodType,docApi) {
             var nowPath = docApi.paths[path];
             var baseUrl = 'http://'+docApi.host+docApi.basePath;
+            if(baseUrl.substring(baseUrl.length-1,baseUrl.length)=='/'){
+                baseUrl = baseUrl.substring(0,baseUrl.length-1);
+            }
             var html = '';
             var consumes = nowPath[methodType].consumes;
             html +='<table class="table table-bordered">\n' +
