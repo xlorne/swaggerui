@@ -26,12 +26,22 @@
 
     <script th:inline="javascript" type="text/javascript">
 
+
         String.prototype.replaceAll = function (FindText, RepText) {
             var regExp = new RegExp(FindText, "g");
             return this.replace(regExp, RepText);
         }
 
 
+        var arrayCount = function (array, needle ) {
+            var count = 0;
+            for (i in array) {
+                if (array[i] == needle){
+                    count++;
+                }
+            }
+            return count;
+        }
 
         var getDefaultVal = function (type) {
             if (type == 'integer') {
@@ -39,6 +49,9 @@
             }
             if (type == 'string') {
                 return 'string';
+            }
+            if (type == 'boolean') {
+                return true;
             }
 
             return 'default';
@@ -97,29 +110,69 @@
             return 'array';
         }
 
+        var formatData = function (object) {
+            var eachItem = function (object,old) {
+                for(var key in object){
+                    var item = object[key];
+                    if(item instanceof Object){
+                        if(JSON.stringify(old[key])=='{}'){
+                            old[key] = item;
+                            item = new Object();
+                            object[key] = new Object();
+                        }
+
+                        eachItem(item,old);
+                    }
+
+                }
+            }
+
+            for(var key in object){
+                var item = object[key];
+                eachItem(item,object);
+            }
+
+            return object;
+        }
+
 
         var getBodyJson = function (data,docApi) {
             var object = new Object();
-
+            var refs = new Array();
             var getObj = function (param,object) {
                 var definitions =   getDefinitions(param);
-                var datas = docApi.definitions[definitions.substring(14, definitions.length)];
-                var properties = datas.properties;
-                for (var key in properties) {
-                    var item = properties[key];
-                    var itemType = item.type;
-                    if (itemType == undefined) {
-                        object[key] = new Object();
-                        getObj(item,object[key]);
-                    } else if(itemType=='array'){
-                        object[key] = new Array();
-                        var child = new Object();
-                        getObj(item,child);
-                        object[key].push(child);
-                    }else {
-                        object[key] =  getDefaultVal(itemType);
+                if(definitions==null&&param.items!=null){
+                    object[param.name] = new Array();
+                    var child = getDefaultVal(param.items.type);
+                    object[param.name].push(child);
+                }else{
+                    if(arrayCount(refs,definitions)>=1){
+                        return ;
+                    }else{
+                        refs.push(definitions);
+                    }
+                    var datas = docApi.definitions[definitions.substring(14, definitions.length)];
+                    var properties = datas.properties;
+                    for (var key in properties) {
+                        var item = properties[key];
+                        var itemType = item.type;
+                        if (itemType == undefined) {
+                            object[key] = new Object();
+                            getObj(item,object[key]);
+                        } else if(itemType=='array'){
+                            object[key] = new Array();
+                            var child = new Object();
+                            getObj(item,child);
+                            if(JSON.stringify(child)!='{}'){
+                                object[key].push(child);
+                            }
+
+                        }else {
+                            object[key] =  getDefaultVal(itemType);
+                        }
                     }
                 }
+
             }
 
             $(data).each(function () {
@@ -132,11 +185,15 @@
                         if(param.schema.type==undefined){
                             getObj(param,object);
                         }else{
-                            if(param.schema.items.type==undefined){
+                            if(param.schema.type){
+                                object = getDefaultVal(param.schema.type);
+                            }else if(param.schema.items.type==undefined){
                                 object = new Array();
                                 var child = new Object();
                                 getObj(param,child);
-                                object.push(child);
+                                if(JSON.stringify(child)!='{}'){
+                                    object.push(child);
+                                }
                             }else{
                                 object = new Array();
                                 var child = getDefaultVal(param.schema.items.type);
@@ -151,23 +208,29 @@
                 }
             });
 
-            var json =  JSON.stringify(object);
+            object = formatData(object);
 
+            var json =  JSON.stringify(object);
+            if(json=='{}'){
+                return null;
+            }
             return formatJson(json);
         };
 
 
         var getResponseJson = function (responses,docApi) {
             var object = new Object();
-
+            var refs = new Array();
             var getObj = function(item,object){
-
                 var ref = getDefinitions(item);
+                if(arrayCount(refs,ref)>=1){
+                    return ;
+                }else{
+                    refs.push(ref);
+                }
                 var datas =  docApi.definitions[ref.substring(14,ref.length)];
                 for(var key in datas.properties){
                     var item = datas.properties[key];
-
-
                     if(item.type==undefined){
                         object[key] = new Object();
                         getObj(item,object[key]);
@@ -175,7 +238,9 @@
                         object[key] = new Array();
                         var child = new Object();
                         getObj(item,child);
-                        object[key].push(child);
+                        if(JSON.stringify(child)!='{}'){
+                            object[key].push(child);
+                        }
                     }else{
                         object[key] = getDefaultVal(item.type);
                     }
@@ -195,7 +260,10 @@
                             object = new Array();
                             var child = new Object();
                             getObj(schema,child);
-                            object.push(child);
+                            if(JSON.stringify(child)!='{}'){
+                                object.push(child);
+                            }
+
                         }else{
                             object = new Array();
                             var child = getDefaultVal(schema.items.type);
@@ -208,13 +276,15 @@
                 }
             }
 
+            object = formatData(object);
+
             var json =  JSON.stringify(object);
 
             return formatJson(json);
 
         }
 
-        var loadData = function(html,mkey,data,docApi,inData){
+        var loadData = function(html,mkey,data,docApi,inData,array){
 
             for(var $key in data){
                 var param =  data[$key];
@@ -257,6 +327,7 @@
                     var definitions = getDefinitions(param);
 
                     if(param.schema){
+
                         if(param.schema.items){
                             if(param.schema.items.type){
                                 html+=
@@ -272,18 +343,52 @@
                         }
                     }
 
+                   // console.log('definitions-->',definitions,param);
+                    if(definitions==null&&param.schema!=null){
+                        if(param.schema.type){
+                            html+=
+                                '<tr>' +
+                                '<td></td>\n' +
+                                '<td>'+param.schema.type+'</td>\n' +
+                                '<td></td>\n' +
+                                '<td></td>\n' +
+                                '<td></td>\n' +
+                                '</tr>';
+                            return html;
+                        }
+                    }
 
+                    if(definitions==null&&param.items!=null){
+                        if(param.items.type){
+                            html+=
+                                '<tr>' +
+                                '<td></td>\n' +
+                                '<td>'+param.items.type+'</td>\n' +
+                                '<td></td>\n' +
+                                '<td></td>\n' +
+                                '<td></td>\n' +
+                                '</tr>';
+                            return html;
+                        }
+                    }
+                    if(array){
+                        if(arrayCount(array,definitions)>=1){
+                            continue;
+                        }else{
+                            array.push(definitions);
+                        }
+                    }
                     var datas =  docApi.definitions[definitions.substring(14,definitions.length)];
                     var properties = datas.properties;
                     var newData = new Array();
                     for(var key in properties){
-                        console.log(key,properties[key]);
+                       // console.log(key,properties[key]);
                         var item = properties[key];
                         item.name = key;
                         item.required = item.allowEmptyValue;
                         newData.push(item);
                     }
-                    html = loadData(html,'&nbsp;&nbsp;&nbsp;&nbsp;'+mkey+param.name,newData,docApi,inData);
+                    html = loadData(html,'&nbsp;&nbsp;&nbsp;&nbsp;'+mkey+param.name,newData,docApi,inData,array);
                 }
             }
 
@@ -317,33 +422,43 @@
 
             html+='<p>请求参数:</p>';
 
-            html+='<table class="table table-bordered">' +
-                '      <thead >  ' +
-                '       <tr class="table-primary">\n' +
-                '            <td >参数名</td>\n' +
-                '            <td>格式</td>\n' +
-                '            <td >解释</td>\n' +
-                '            <td>必填</td>' +
-                '            <td>形式</td>\n' +
-                '        </tr>' +
-                '</thead>\n';
+            var refsreq = new Array();
 
-            html=loadData(html,'',nowPath[methodType].parameters,docApi);
+            if(nowPath[methodType].parameters){
+                html+='<table class="table table-bordered">' +
+                    '      <thead >  ' +
+                    '       <tr class="table-primary">\n' +
+                    '            <td >参数名</td>\n' +
+                    '            <td>格式</td>\n' +
+                    '            <td >解释</td>\n' +
+                    '            <td>必填</td>' +
+                    '            <td>形式</td>\n' +
+                    '        </tr>' +
+                    '</thead>\n';
 
-            html+='</table>';
+                html=loadData(html,'',nowPath[methodType].parameters,docApi,null,refsreq);
+
+                html+='</table>';
+            }else{
+                html+='<p>无</p>';
+            }
+
 
             var bodyJson = getBodyJson(nowPath[methodType].parameters,docApi);
 
-            html+='<p>body请求示例:</p>';
-            html+='<pre>'+bodyJson+'</pre>';
+            if(bodyJson!=null){
+                html+='<p>body请求示例:</p>';
+                html+='<pre>'+bodyJson+'</pre>';
+            }
             html+='<p>响应参数:</p>';
-
-
 
             var responses = nowPath[methodType].responses;
 
             var responseJson = getResponseJson(responses,docApi);
-            console.log('responseJson->',responseJson);
+           // console.log('responseJson->',responseJson);
+
+            var refs = new Array();
+
             for(var key in responses){
                 var state = key;
                 var item = responses[state];
@@ -352,11 +467,11 @@
                 if(schema.type == undefined){
                     var ref = schema.$ref;
                     var datas =  docApi.definitions[ref.substring(14,ref.length)];
-                    console.log("res->data",datas);
+                   // console.log("res->data",datas);
 
                     var newData = new Array();
                     for(var key in datas.properties){
-                        console.log(key,datas.properties[key]);
+                       // console.log(key,datas.properties[key]);
                         var item = datas.properties[key];
                         item.name = key;
                         item.required = item.allowEmptyValue;
@@ -373,7 +488,7 @@
                         '        </tr>' +
                         '</thead>\n';
 
-                    html=loadData(html,'',newData,docApi);
+                    html=loadData(html,'',newData,docApi,null,refs);
 
                     html+='</table>';
                 }else{
@@ -396,14 +511,14 @@
 
                             var newData = new Array();
                             for(var key in datas.properties){
-                                console.log(key,datas.properties[key]);
+                               // console.log(key,datas.properties[key]);
                                 var item = datas.properties[key];
                                 item.name = key;
                                 item.required = item.allowEmptyValue;
                                 newData.push(item);
                             }
 
-                            html=loadData(html,'&nbsp;&nbsp;&nbsp;&nbsp;',newData,docApi);
+                            html=loadData(html,'&nbsp;&nbsp;&nbsp;&nbsp;',newData,docApi,null,refs);
 
                             html+='</table>';
                         }else{
@@ -465,7 +580,7 @@
                     if(type==undefined){
                         type = api.attr("method");
                     }
-                    console.log(path,type);
+                    //console.log(path,type);
                     var html = api[0].outerHTML;
 
                     html = html.replaceAll("<","&#60;");
@@ -479,6 +594,7 @@
                             api.append(getApiTable(path,type,docApi));
                         }
                     }catch (e) {
+                        console.log(e);
                         api.append(html);
                     }
 
@@ -522,7 +638,7 @@
 
         var loadList = function(){
             var list = [[${list}]];
-            console.log(list);
+           // console.log(list);
 
             $("#bd-docs-nav").empty();
             var html='';
@@ -573,12 +689,12 @@
             var decodeStr = base64.decode($("#hidden").val());
             var docApi = JSON.parse(decodeStr);
 
-            console.log(path,type,docApi);
+           // console.log(path,type,docApi);
 
             var tag = docApi.paths[path][type].tags[0];
             var operationId = docApi.paths[path][type].operationId;
 
-            console.log(tag,operationId);
+           // console.log(tag,operationId);
 
             window.open('/swagger-ui.html?tag='+tag+'&type='+operationId);
 
